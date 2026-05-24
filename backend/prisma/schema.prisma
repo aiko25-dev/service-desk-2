@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OPERATOR
+  ACCOUNTANT
+  HR
+  MANAGER
+  ADMIN
+}
+
+enum TicketStatus {
+  NEW
+  ACCEPTED
+  IN_PROGRESS
+  PENDING_APPROVAL
+  CLOSED
+  REJECTED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  password         String
+  firstName        String
+  lastName         String
+  role             Role              @default(OPERATOR)
+  avatar           String?
+  isActive         Boolean           @default(true)
+  department       String?
+  position         String?
+  joinDate         DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  createdTickets   Ticket[]          @relation("CreatedTickets")
+  assignedTickets  Ticket[]          @relation("AssignedTickets")
+  comments         Comment[]
+  sentMessages     Message[]         @relation("SentMessages")
+  receivedMessages Message[]         @relation("ReceivedMessages")
+  tasks            Task[]
+  vacationRequests VacationRequest[]
+  hrOrders         HrOrder[]         @relation("HrOrderEmployee")
+  financeRequests  FinanceRequest[]
+  approvals        ApprovalStep[]
+  auditLogs        AuditLog[]
+}
+
+model Ticket {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  status      TicketStatus @default(NEW)
+  priority    Priority     @default(MEDIUM)
+  category    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  creatorId   String
+  creator     User         @relation("CreatedTickets", fields: [creatorId], references: [id])
+  assigneeId  String?
+  assignee    User?        @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  comments    Comment[]
+  files       File[]
+  tasks       Task[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  subject    String
+  body       String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model File {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  size       Int
+  mimeType   String
+  createdAt  DateTime @default(now())
+  uploaderId String
+  ticketId   String?
+  ticket     Ticket?  @relation(fields: [ticketId], references: [id])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("TODO") // "TODO", "IN_PROGRESS", "DONE"
+  deadline    DateTime?
+  ticketId    String?
+  ticket      Ticket?   @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  assigneeId  String?
+  assignee    User?     @relation(fields: [assigneeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model VacationRequest {
+  id         String   @id @default(cuid())
+  startDate  DateTime
+  endDate    DateTime
+  status     String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  reason     String?
+  employeeId String
+  employee   User     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model HrOrder {
+  id         String   @id @default(cuid())
+  title      String
+  type       String   // "HIRE", "TERMINATION", "TRANSFER"
+  content    String
+  status     String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  employeeId String?
+  employee   User?    @relation("HrOrderEmployee", fields: [employeeId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model FinanceRequest {
+  id          String   @id @default(cuid())
+  title       String
+  amount      Float
+  category    String   // "OFFICE", "SOFTWARE", "HARDWARE", "TRAVEL", "OTHER"
+  description String
+  status      String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  creatorId   String
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ApprovalStep {
+  id          String   @id @default(cuid())
+  type        String   // "TICKET", "VACATION", "HR_ORDER", "FINANCE"
+  referenceId String   // ID of referenced model
+  step        Int      @default(1)
+  status      String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  approverId  String
+  approver    User     @relation(fields: [approverId], references: [id], onDelete: Cascade)
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TicketCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+}
