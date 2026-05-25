@@ -4,7 +4,19 @@ import { AppModule } from '../src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as express from 'express';
 
-const server = express();
+// Resolve express in a way that works across both CommonJS and ES Module transpilation
+const getExpressApp = (): any => {
+  if (typeof express === 'function') {
+    return express;
+  }
+  if (express && typeof (express as any).default === 'function') {
+    return (express as any).default;
+  }
+  return express;
+};
+
+const expressApp = getExpressApp();
+const server = expressApp();
 
 let isBootstrapped = false;
 
@@ -29,7 +41,7 @@ async function bootstrap() {
   );
 
   // Serve static files from /tmp since Vercel's real filesystem is read-only
-  app.use('/uploads', express.static('/tmp'));
+  app.use('/uploads', expressApp.static('/tmp'));
 
   await app.init();
   isBootstrapped = true;
