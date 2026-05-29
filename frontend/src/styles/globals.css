@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary-blue: #0052cc;
+  --color-light-slate: #f4f5f7;
+  --color-card-border: #dfe1e6;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f4f5f7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(9, 30, 66, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(9, 30, 66, 0.3);
+}
+
+/* Custom CSS classes for Premium Aesthetics */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(9, 30, 66, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 82, 204, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(9, 30, 66, 0.08), 
+              0 0 15px -3px rgba(0, 82, 204, 0.05);
+}
+
+.premium-card {
+  background: #ffffff;
+  border: 1px solid #dfe1e6;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(9, 30, 66, 0.08), 0 1px 2px rgba(9, 30, 66, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:hover {
+  border-color: #c1c7d0;
+  box-shadow: 0 4px 8px -2px rgba(9, 30, 66, 0.12), 0 0 1px rgba(9, 30, 66, 0.08);
+}
+
+/* Pulsing background glow elements */
+.bg-glow-blue {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(0, 82, 204, 0.05) 0%, rgba(0, 82, 204, 0) 70%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-glow-purple {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(114, 46, 209, 0.04) 0%, rgba(114, 46, 209, 0) 70%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Custom styling for Ant Design elements within tailwind pages */
+.ant-table-wrapper {
+  background: transparent !important;
+}
+
+.ant-table {
+  background: transparent !important;
+}
+
+.ant-table-thead > tr > th {
+  border-bottom: 1px solid #dfe1e6 !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f4f5f7 !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #fafbfc !important;
+}
+
+/* Override Antd Sider for custom transitions */
+.ant-layout-sider {
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.custom-menu-items .ant-menu-item {
+  transition: all 0.2s ease !important;
+}
+
+.custom-menu-items .ant-menu-item-selected {
+  background: #deebff !important;
+  border-left: 3px solid #0052cc !important;
+}
+

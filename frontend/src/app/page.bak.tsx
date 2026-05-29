@@ -11,8 +11,9 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-slate-50 text-slate-400 font-semibold text-xs">
-      Бағытталуда...
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400 text-xs font-semibold">
+      Перенаправление в Service Desk...
     </div>
   );
 }
+

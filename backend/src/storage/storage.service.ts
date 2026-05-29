@@ -74,4 +74,21 @@ export class StorageService {
 
     return { success: true };
   }
+
+  async findAll(ticketId?: string) {
+    return this.prisma.file.findMany({
+      where: ticketId ? { ticketId } : {},
+      include: {
+        ticket: {
+          select: {
+            title: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
+

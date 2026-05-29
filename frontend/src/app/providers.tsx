@@ -4,8 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Sidebar from '../components/layout/Sidebar';
-import Navbar from '../components/layout/Navbar';
+import AppLayout from '../components/layout/AppLayout';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,7 +38,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   // Prevent server-side rendering mismatch for localStorage checks
   if (!mounted) {
-    return <div className="h-screen w-screen flex items-center justify-center bg-slate-50 text-slate-400">Загрузка Service Desk...</div>;
+    return <div className="h-screen w-screen flex items-center justify-center bg-slate-950 text-slate-400">Загрузка Service Desk...</div>;
   }
 
   const isLoginRoute = pathname === '/login';
@@ -47,17 +46,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {isAuthenticated && !isLoginRoute ? (
-        <div className="flex h-screen w-screen bg-slate-50 overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <Navbar />
-            <main className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
-              {children}
-            </main>
-          </div>
-        </div>
+        <AppLayout>{children}</AppLayout>
       ) : (
-        <div className="min-h-screen w-screen flex flex-col bg-slate-50">
+        <div className="min-h-screen w-screen flex flex-col bg-slate-950">
           {children}
         </div>
       )}
