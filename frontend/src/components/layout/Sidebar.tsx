@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../../store/authStore';
+import { useLanguage } from '../../context/LanguageContext';
 import { useState } from 'react';
 import {
   LayoutDashboard,
@@ -26,26 +27,31 @@ import {
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, clearAuth } = useAuthStore();
+  const { t, language } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!user) return null;
 
-  // Define menu items with roles constraints
+  // Define menu items with roles constraints and translated names
   const menuItems = [
-    { name: 'Бақылау панелі (Dashboard)', path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Өтінімдер (Tickets)', path: '/tickets', icon: Ticket, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Тапсырмалар (Tasks)', path: '/tasks', icon: CheckSquare, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Kanban тақтасы', path: '/kanban', icon: Kanban, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Есептер (Reports)', path: '/reports', icon: FileText, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
-    { name: 'Ішкі хаттар (Messages)', path: '/messages', icon: Mail, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'HR модуль', path: '/hr', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
-    { name: 'Бухгалтерия (Finance)', path: '/finance', icon: Wallet, roles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Қызметкерлер (Employees)', path: '/employees', icon: UserCheck, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Мақұлдау (Approvals)', path: '/approvals', icon: CheckSquare, roles: ['ADMIN', 'MANAGER'] },
-    { name: 'Файлдар (Files)', path: '/files', icon: FolderOpen, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: 'Админ панель', path: '/admin', icon: Shield, roles: ['ADMIN'] },
-    { name: 'Баптаулар (Settings)', path: '/settings', icon: Settings, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navDashboard'), path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navTickets'), path: '/tickets', icon: Ticket, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navTasks'), path: '/tasks', icon: CheckSquare, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navKanban'), path: '/navKanban', icon: Kanban, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] }, // Wait, keep path as '/kanban'
+    { name: t('navReports'), path: '/reports', icon: FileText, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
+    { name: t('navMessages'), path: '/messages', icon: Mail, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navHR'), path: '/hr', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
+    { name: t('navFinance'), path: '/finance', icon: Wallet, roles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navEmployees'), path: '/employees', icon: UserCheck, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navApprovals'), path: '/approvals', icon: CheckSquare, roles: ['ADMIN', 'MANAGER'] },
+    { name: t('navFiles'), path: '/files', icon: FolderOpen, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
+    { name: t('navAdmin'), path: '/admin', icon: Shield, roles: ['ADMIN'] },
+    { name: t('navSettings'), path: '/settings', icon: Settings, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
   ];
+
+  // Fix: make sure Kanban path matches '/kanban'
+  menuItems[3].name = t('navKanban');
+  menuItems[3].path = '/kanban';
 
   // Filter links based on current user role
   const allowedItems = menuItems.filter((item) => item.roles.includes(user.role));
@@ -70,7 +76,7 @@ export default function Sidebar() {
                 S
               </div>
               <span className="text-sm font-bold tracking-tight text-slate-800 uppercase">
-                Service Desk
+                {t('appName')}
               </span>
             </div>
           )}
@@ -131,10 +137,10 @@ export default function Sidebar() {
           className={`flex items-center gap-3 w-full px-3 py-2 rounded-lg text-xs font-bold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors ${
             isCollapsed ? 'justify-center' : ''
           }`}
-          title="Жүйеден шығу"
+          title={t('Logout')}
         >
           <LogOut size={16} className="shrink-0 text-slate-450" />
-          {!isCollapsed && <span>Шығу (Logout)</span>}
+          {!isCollapsed && <span>{language === 'kk' ? 'Шығу (Logout)' : language === 'en' ? 'Logout' : 'Выйти (Logout)'}</span>}
         </button>
       </div>
     </aside>

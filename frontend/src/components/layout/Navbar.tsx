@@ -2,20 +2,24 @@
 
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../../store/authStore';
-import { Bell, Mail, Sparkles, Check, Trash2, AlertCircle, Info, CheckCircle, ChevronDown, Shield } from 'lucide-react';
+import { Bell, Mail, Sparkles, Check, Trash2, AlertCircle, Info, CheckCircle, ChevronDown, Shield, Globe } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../hooks/useApi';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, updateUser } = useAuthStore();
+  const { t, language, setLanguage } = useLanguage();
 
   const [isOpen, setIsOpen] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const roleRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
 
   // Polling unread mail count in backend
@@ -127,6 +131,9 @@ export default function Navbar() {
       if (roleRef.current && !roleRef.current.contains(event.target as Node)) {
         setShowRoleMenu(false);
       }
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setShowLangMenu(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -163,20 +170,20 @@ export default function Navbar() {
 
   // Title selector based on path
   const getHeaderTitle = () => {
-    if (pathname.startsWith('/dashboard')) return 'Бақылау панелі (Dashboard)';
-    if (pathname.startsWith('/tickets')) return 'Өтінімдер журналы (Tickets)';
-    if (pathname.startsWith('/tasks')) return 'Тапсырмалар тізімі (Tasks)';
-    if (pathname.startsWith('/kanban')) return 'Kanban тақтасы';
-    if (pathname.startsWith('/reports')) return 'Талдау және Есептер (Reports)';
-    if (pathname.startsWith('/messages')) return 'Корпоративтік хат алмасу';
-    if (pathname.startsWith('/hr')) return 'HR департаменті';
-    if (pathname.startsWith('/finance')) return 'Бухгалтерия және Шығындар';
-    if (pathname.startsWith('/employees')) return 'Қызметкерлер тізімі (Employees)';
-    if (pathname.startsWith('/approvals')) return 'Құжаттарды мақұлдау (Approvals)';
-    if (pathname.startsWith('/files')) return 'Файлдар архиві (Files)';
-    if (pathname.startsWith('/admin')) return 'Жүйені әкімшілендіру (Admin)';
-    if (pathname.startsWith('/settings')) return 'Платформа баптаулары (Settings)';
-    return 'Басқару панелі';
+    if (pathname.startsWith('/dashboard')) return t('navDashboard');
+    if (pathname.startsWith('/tickets')) return t('navTickets');
+    if (pathname.startsWith('/tasks')) return t('navTasks');
+    if (pathname.startsWith('/kanban')) return t('navKanban');
+    if (pathname.startsWith('/reports')) return t('navReports');
+    if (pathname.startsWith('/messages')) return t('navMessages');
+    if (pathname.startsWith('/hr')) return t('navHR');
+    if (pathname.startsWith('/finance')) return t('navFinance');
+    if (pathname.startsWith('/employees')) return t('navEmployees');
+    if (pathname.startsWith('/approvals')) return t('navApprovals');
+    if (pathname.startsWith('/files')) return t('navFiles');
+    if (pathname.startsWith('/admin')) return t('navAdmin');
+    if (pathname.startsWith('/settings')) return t('navSettings');
+    return t('navDashboard');
   };
 
   const unreadCount = mailData?.count || 0;
@@ -241,11 +248,47 @@ export default function Navbar() {
                     setShowRoleMenu(false);
                   }}
                   className={`w-full text-left px-3 py-2 text-xs font-semibold hover:bg-slate-50 flex items-center justify-between transition-colors ${
-                    user.role === r.key ? 'text-blue-600 bg-blue-50/30' : 'text-slate-650'
+                    user.role === r.key ? 'text-blue-600 bg-blue-50/30' : 'text-slate-655'
                   }`}
                 >
                   <span>{r.label}</span>
                   {user.role === r.key && <span className="text-blue-600">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Language Selector */}
+        <div className="relative" ref={langRef}>
+          <button
+            onClick={() => setShowLangMenu(!showLangMenu)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-[#dfe1e6] hover:border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100/50 text-[10px] font-bold text-slate-700 transition-all cursor-pointer"
+          >
+            <Globe size={12} className="text-blue-600" />
+            <span className="uppercase">{language}</span>
+            <ChevronDown size={12} className="text-slate-400" />
+          </button>
+          
+          {showLangMenu && (
+            <div className="absolute right-0 mt-1.5 w-28 bg-white rounded-xl border border-slate-200 shadow-lg z-50 overflow-hidden py-1">
+              {[
+                { key: 'kk', label: 'Қазақша' },
+                { key: 'ru', label: 'Русский' },
+                { key: 'en', label: 'English' }
+              ].map((l) => (
+                <button
+                  key={l.key}
+                  onClick={() => {
+                    setLanguage(l.key as any);
+                    setShowLangMenu(false);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 text-xs font-semibold hover:bg-slate-50 flex items-center justify-between transition-colors ${
+                    language === l.key ? 'text-blue-600 bg-blue-50/30' : 'text-slate-600'
+                  }`}
+                >
+                  <span>{l.label}</span>
+                  {language === l.key && <span className="text-blue-600 text-[10px]">✓</span>}
                 </button>
               ))}
             </div>

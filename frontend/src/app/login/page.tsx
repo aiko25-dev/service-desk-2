@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { api } from '../../hooks/useApi';
-import { Lock, Mail, Server, ShieldCheck, Sparkles } from 'lucide-react';
+import { Lock, Mail, Server, ShieldCheck, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const { t, language, setLanguage } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +19,7 @@ export default function LoginPage() {
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!email || !password) {
-      setError('Электрондық пошта мен құпия сөзді толтырыңыз');
+      setError(t('loginRequiredError'));
       return;
     }
 
@@ -29,18 +31,10 @@ export default function LoginPage() {
       setAuth(res.data.access_token, res.data.user);
       router.replace('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Пошта немесе құпия сөз қате');
+      setError(err.response?.data?.message || t('loginInvalidError'));
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Demo Assist helper: Auto-fills standard seeded corporate roles
-  const handleQuickLogin = (role: 'admin' | 'operator' | 'manager' | 'hr' | 'accountant') => {
-    const capitalize = role.charAt(0).toUpperCase() + role.slice(1);
-    setEmail(`${role}@company.com`);
-    setPassword(`${capitalize}123!`);
-    setError('');
   };
 
   return (
@@ -49,14 +43,35 @@ export default function LoginPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-teal-500/5 blur-[120px] pointer-events-none" />
 
+      {/* Language Switcher in Login Page */}
+      <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm text-xs font-bold text-slate-700 z-55">
+        <Globe size={14} className="text-slate-400 ml-1" />
+        {[
+          { key: 'kk', label: 'ҚАЗ' },
+          { key: 'ru', label: 'РУС' },
+          { key: 'en', label: 'ENG' }
+        ].map((l) => (
+          <button
+            key={l.key}
+            type="button"
+            onClick={() => setLanguage(l.key as any)}
+            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+              language === l.key ? 'bg-blue-600 text-white' : 'hover:bg-slate-100 text-slate-600'
+            }`}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+
       {/* Login Card Panel */}
       <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl p-8 overflow-hidden animate-fade-in">
         <div className="flex flex-col items-center mb-8">
           <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20 mb-4">
             <Server className="text-white" size={24} />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Service Desk жүйесіне кіру</h2>
-          <p className="text-xs text-slate-400 mt-1 font-semibold">Корпоративтік өтінімдерді басқару порталы</p>
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight">{t('loginTitle')}</h2>
+          <p className="text-xs text-slate-400 mt-1 font-semibold">{t('loginSubtitle')}</p>
         </div>
 
         {error && (
@@ -68,7 +83,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4 text-xs font-bold text-slate-700">
           <div>
-            <label className="block text-[9px] uppercase tracking-wider text-slate-450 mb-1.5">Жұмыс поштасы (Email)</label>
+            <label className="block text-[9px] uppercase tracking-wider text-slate-450 mb-1.5">{t('loginEmailLabel')}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-450 pointer-events-none">
                 <Mail size={16} />
@@ -85,7 +100,7 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-[9px] uppercase tracking-wider text-slate-450 mb-1.5">Құпия сөз (Password)</label>
+            <label className="block text-[9px] uppercase tracking-wider text-slate-450 mb-1.5">{t('loginPasswordLabel')}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-450 pointer-events-none">
                 <Lock size={16} />
@@ -109,36 +124,10 @@ export default function LoginPage() {
             {isLoading ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <span>Порталға кіру</span>
+              <span>{t('loginBtn')}</span>
             )}
           </button>
         </form>
-
-        {/* Demo Fast Login Toolbar */}
-        <div className="mt-8 pt-6 border-t border-slate-200">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Sparkles size={12} className="text-blue-500" />
-            Тестілеуге арналған жылдам кіру:
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs font-semibold">
-            {[
-              { role: 'admin', label: 'Администратор' },
-              { role: 'operator', label: 'IT Оператор' },
-              { role: 'manager', label: 'Жетекші' },
-              { role: 'hr', label: 'HR Кадрлар' },
-              { role: 'accountant', label: 'Бухгалтер' },
-            ].map((btn) => (
-              <button
-                key={btn.role}
-                type="button"
-                onClick={() => handleQuickLogin(btn.role as any)}
-                className="px-2 py-1.5 text-left bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] text-slate-650 font-bold transition-all duration-150 cursor-pointer"
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

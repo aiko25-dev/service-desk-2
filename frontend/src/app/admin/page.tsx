@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../hooks/useApi';
 import { useAuthStore } from '../../store/authStore';
 import { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Shield,
   UserPlus,
@@ -25,6 +26,7 @@ import {
 export default function AdminPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const { t, language } = useLanguage();
 
   // Active Tab: 'users' | 'categories' | 'logs'
   const [activeTab, setActiveTab] = useState<'users' | 'categories' | 'logs'>('users');
@@ -203,8 +205,8 @@ export default function AdminPage() {
     const term = searchQuery.toLowerCase();
     const userName = l.user ? `${l.user.firstName} ${l.user.lastName} ${l.user.email}`.toLowerCase() : 'система';
     return (
-      l.action.toLowerCase().includes(term) ||
-      l.details.toLowerCase().includes(term) ||
+      (l.action || '').toLowerCase().includes(term) ||
+      (l.details || '').toLowerCase().includes(term) ||
       userName.includes(term)
     );
   });
@@ -216,10 +218,10 @@ export default function AdminPage() {
         <div>
           <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
             <Shield className="text-blue-600" size={24} />
-            Администрирование системы
+            {t('adminTitle')}
           </h2>
           <p className="text-slate-500 text-xs mt-1">
-            Управление учетными записями, категориями инцидентов и аудит активности в реальном времени.
+            {t('adminSubtitle')}
           </p>
         </div>
 
@@ -230,7 +232,7 @@ export default function AdminPage() {
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 cursor-pointer transition-all shadow-sm text-xs"
           >
             <UserPlus size={16} />
-            Создать пользователя
+            {t('adminCreateUserBtn')}
           </button>
         )}
       </div>
@@ -239,7 +241,7 @@ export default function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="premium-card p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Пользователи</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminStatUsers')}</span>
             <h3 className="text-2xl font-black text-slate-800">{isUsersLoading ? '...' : users.length}</h3>
           </div>
           <div className="p-3 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl">
@@ -249,7 +251,7 @@ export default function AdminPage() {
         
         <div className="premium-card p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Категории заявок</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminStatCategories')}</span>
             <h3 className="text-2xl font-black text-slate-800">{isCategoriesLoading ? '...' : categories.length}</h3>
           </div>
           <div className="p-3 bg-teal-50 text-teal-600 border border-teal-100 rounded-xl">
@@ -259,7 +261,7 @@ export default function AdminPage() {
 
         <div className="premium-card p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Журнал аудита</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminStatLogs')}</span>
             <h3 className="text-2xl font-black text-slate-800">{isLogsLoading ? '...' : logs.length}</h3>
           </div>
           <div className="p-3 bg-slate-100 text-slate-600 border border-slate-200 rounded-xl">
@@ -276,7 +278,7 @@ export default function AdminPage() {
             activeTab === 'users' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          Учетные записи
+          {t('adminTabUsers')}
           {activeTab === 'users' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
         </button>
         <button
@@ -285,7 +287,7 @@ export default function AdminPage() {
             activeTab === 'categories' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          Категории
+          {t('adminTabCategories')}
           {activeTab === 'categories' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
         </button>
         <button
@@ -294,7 +296,7 @@ export default function AdminPage() {
             activeTab === 'logs' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          Логи аудита
+          {t('adminTabLogs')}
           {activeTab === 'logs' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
         </button>
       </div>
@@ -307,7 +309,7 @@ export default function AdminPage() {
             <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
             <input
               type="text"
-              placeholder="Поиск по ФИО, email, отделу или должности..."
+              placeholder={t('adminSearchUsersPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl outline-none transition-all shadow-sm"
@@ -319,12 +321,12 @@ export default function AdminPage() {
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
-                    <th className="p-4">ФИО / Email</th>
-                    <th className="p-4">Роль</th>
-                    <th className="p-4">Отдел / Должность</th>
-                    <th className="p-4">Статус</th>
-                    <th className="p-4">Дата приема</th>
-                    <th className="p-4 text-right">Действия</th>
+                    <th className="p-4">{t('adminTableFio')}</th>
+                    <th className="p-4">{t('role')}</th>
+                    <th className="p-4">{t('department')} / {t('position')}</th>
+                    <th className="p-4">{t('status')}</th>
+                    <th className="p-4">{t('adminTableDate')}</th>
+                    <th className="p-4 text-right">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
@@ -377,11 +379,11 @@ export default function AdminPage() {
                         <td className="p-4">
                           {u.isActive ? (
                             <span className="flex items-center gap-1 text-emerald-600 font-bold text-[10px]">
-                              <CheckCircle size={12} /> Активен
+                              <CheckCircle size={12} /> {t('adminStatusActive')}
                             </span>
                           ) : (
                             <span className="flex items-center gap-1 text-rose-500 font-bold text-[10px]">
-                              <XCircle size={12} /> Заблокирован
+                              <XCircle size={12} /> {t('adminStatusBlocked')}
                             </span>
                           )}
                         </td>
@@ -406,7 +408,7 @@ export default function AdminPage() {
                                 className={`p-1.5 hover:bg-slate-100 rounded-lg transition-colors ${
                                   u.isActive ? 'text-rose-500 hover:text-rose-700' : 'text-emerald-600 hover:text-emerald-800'
                                 }`}
-                                title={u.isActive ? 'Заблокировать' : 'Разблокировать'}
+                                title={u.isActive ? t('adminConfirmBlock') : t('adminConfirmUnblock')}
                               >
                                 {u.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
                               </button>
@@ -430,15 +432,15 @@ export default function AdminPage() {
           <div className="premium-card p-5 space-y-4">
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <FolderPlus size={16} className="text-blue-500" />
-              Добавить категорию
+              {t('adminCatAddTitle')}
             </h3>
             <div className="space-y-1.5">
               <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                Название категории
+                {t('adminCatNameLabel')}
               </label>
               <input
                 type="text"
-                placeholder="Например, Оргтехника, Серверы..."
+                placeholder={t('adminCatPlaceholder')}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl outline-none transition-all"
@@ -452,21 +454,21 @@ export default function AdminPage() {
               className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors text-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus size={14} />
-              Сохранить категорию
+              {t('adminCatSaveBtn')}
             </button>
           </div>
 
           {/* Categories list */}
           <div className="md:col-span-2 premium-card p-5 space-y-4">
-            <h3 className="text-sm font-bold text-slate-800">Список категорий</h3>
+            <h3 className="text-sm font-bold text-slate-800">{t('adminCatListTitle')}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {isCategoriesLoading ? (
                 <div className="text-slate-400 text-xs col-span-2 text-center py-8">
-                  Загрузка категорий...
+                  {t('loading')}
                 </div>
               ) : categories.length === 0 ? (
                 <div className="text-slate-400 text-xs col-span-2 text-center py-8">
-                  Категории отсутствуют. Добавьте первую!
+                  {t('adminCatEmpty')}
                 </div>
               ) : (
                 categories.map((c: any) => (
@@ -477,7 +479,7 @@ export default function AdminPage() {
                     <span className="font-semibold text-slate-800">{c.name}</span>
                     <button
                       onClick={() => {
-                        if (confirm(`Удалить категорию "${c.name}"?`)) {
+                        if (confirm(`${t('adminCatConfirmDelete')}"${c.name}"?`)) {
                           deleteCategoryMutation.mutate(c.id);
                         }
                       }}
@@ -552,8 +554,8 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-slate-800">Создание нового сотрудника</h3>
-                <p className="text-slate-500 text-[10px]">Заполните учетные данные для авторизации в системе.</p>
+                <h3 className="text-sm font-bold text-slate-800">{t('adminCreateModalTitle')}</h3>
+                <p className="text-slate-500 text-[10px]">{t('adminCreateModalSubtitle')}</p>
               </div>
               <button
                 onClick={() => setIsCreateUserOpen(false)}
@@ -567,13 +569,13 @@ export default function AdminPage() {
               {createUserMutation.isError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs flex items-center gap-2">
                   <AlertCircle size={16} />
-                  <span>{(createUserMutation.error as any)?.response?.data?.message || 'Ошибка создания пользователя'}</span>
+                  <span>{(createUserMutation.error as any)?.response?.data?.message || t('adminCreateError')}</span>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Имя</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormFirstName')}</label>
                   <input
                     type="text"
                     required
@@ -583,7 +585,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Фамилия</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormLastName')}</label>
                   <input
                     type="text"
                     required
@@ -596,7 +598,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Email</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('email')}</label>
                   <input
                     type="email"
                     required
@@ -606,10 +608,10 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Пароль</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('password')}</label>
                   <input
                     type="password"
-                    placeholder="Company123!"
+                    placeholder={t('adminFormPasswordPlaceholder')}
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl outline-none transition-all"
@@ -619,7 +621,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Роль</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormRole')}</label>
                   <select
                     value={newUser.role}
                     onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
@@ -634,7 +636,7 @@ export default function AdminPage() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Отдел</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('department')}</label>
                   <input
                     type="text"
                     value={newUser.department}
@@ -644,7 +646,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Должность</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('position')}</label>
                   <input
                     type="text"
                     value={newUser.position}
@@ -660,7 +662,7 @@ export default function AdminPage() {
                 onClick={() => setIsCreateUserOpen(false)}
                 className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
               >
-                Отмена
+                {t('cancel')}
               </button>
               <button
                 onClick={() => createUserMutation.mutate(newUser)}
@@ -668,7 +670,7 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors text-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
               >
                 {createUserMutation.isPending && <RefreshCw size={12} className="animate-spin" />}
-                Создать
+                {t('create')}
               </button>
             </div>
           </div>
@@ -681,8 +683,8 @@ export default function AdminPage() {
           <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="space-y-0.5">
-                <h3 className="text-sm font-bold text-slate-800">Редактирование сотрудника</h3>
-                <p className="text-slate-500 text-[10px]">Сотрудник: {selectedUser.email}</p>
+                <h3 className="text-sm font-bold text-slate-800">{t('adminEditModalTitle')}</h3>
+                <p className="text-slate-500 text-[10px]">Email: {selectedUser.email}</p>
               </div>
               <button
                 onClick={() => { setIsEditUserOpen(false); setSelectedUser(null); }}
@@ -696,13 +698,13 @@ export default function AdminPage() {
               {updateUserMutation.isError && (
                 <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs flex items-center gap-2">
                   <AlertCircle size={16} />
-                  <span>{(updateUserMutation.error as any)?.response?.data?.message || 'Ошибка обновления пользователя'}</span>
+                  <span>{(updateUserMutation.error as any)?.response?.data?.message || t('adminEditError')}</span>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Имя</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormFirstName')}</label>
                   <input
                     type="text"
                     required
@@ -712,7 +714,7 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Фамилия</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormLastName')}</label>
                   <input
                     type="text"
                     required
@@ -725,7 +727,7 @@ export default function AdminPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Роль</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminFormRole')}</label>
                   <select
                     value={editUserForm.role}
                     onChange={(e) => setEditUserForm({ ...editUserForm, role: e.target.value })}
@@ -740,21 +742,21 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Статус аккаунта</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('adminEditModalStatus')}</label>
                   <select
                     value={editUserForm.isActive ? 'true' : 'false'}
                     onChange={(e) => setEditUserForm({ ...editUserForm, isActive: e.target.value === 'true' })}
                     className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl outline-none transition-all"
                   >
-                    <option value="true">Активен</option>
-                    <option value="false">Заблокирован</option>
+                    <option value="true">{t('adminStatusActive')}</option>
+                    <option value="false">{t('adminStatusBlocked')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Отдел</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('department')}</label>
                   <input
                     type="text"
                     value={editUserForm.department}
@@ -764,7 +766,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Должность</label>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">{t('position')}</label>
                   <input
                     type="text"
                     value={editUserForm.position}
@@ -776,11 +778,11 @@ export default function AdminPage() {
 
               <div className="space-y-1.5">
                 <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                  Новый пароль (оставьте пустым, чтобы не менять)
+                  {t('adminEditModalNewPassword')}
                 </label>
                 <input
                   type="password"
-                  placeholder="Введите новый пароль..."
+                  placeholder="..."
                   value={editUserForm.password}
                   onChange={(e) => setEditUserForm({ ...editUserForm, password: e.target.value })}
                   className="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl outline-none transition-all"
@@ -793,7 +795,7 @@ export default function AdminPage() {
                 onClick={() => { setIsEditUserOpen(false); setSelectedUser(null); }}
                 className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors text-xs cursor-pointer"
               >
-                Отмена
+                {t('cancel')}
               </button>
               <button
                 onClick={() => updateUserMutation.mutate({ id: selectedUser.id, payload: editUserForm })}
@@ -801,7 +803,7 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-colors text-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
               >
                 {updateUserMutation.isPending && <RefreshCw size={12} className="animate-spin" />}
-                Сохранить
+                {t('save')}
               </button>
             </div>
           </div>

@@ -103,23 +103,19 @@ export class UsersService {
   async update(id: string, data: any, updaterId: string) {
     const user = await this.findOne(id);
 
-    const updateData: any = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      department: data.department,
-      position: data.position,
-    };
-
-    if (data.avatar !== undefined) {
-      updateData.avatar = data.avatar;
-    }
+    const updateData: any = {};
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.department !== undefined) updateData.department = data.department;
+    if (data.position !== undefined) updateData.position = data.position;
+    if (data.avatar !== undefined) updateData.avatar = data.avatar;
 
     // Only Admin can update role & isActive
     const updater = await this.prisma.user.findUnique({ where: { id: updaterId } });
     if (updater?.role === Role.ADMIN) {
-      if (data.role) updateData.role = data.role;
+      if (data.role !== undefined) updateData.role = data.role;
       if (data.isActive !== undefined) updateData.isActive = data.isActive;
-      if (data.joinDate) updateData.joinDate = new Date(data.joinDate);
+      if (data.joinDate !== undefined) updateData.joinDate = data.joinDate ? new Date(data.joinDate) : null;
       
       if (data.password) {
         const salt = await bcrypt.genSalt(10);

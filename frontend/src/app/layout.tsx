@@ -5,6 +5,7 @@ import React from 'react';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider, theme } from 'antd';
 import { RoleProvider } from '@/context/RoleContext';
+import { LanguageProvider } from '@/context/LanguageContext';
 import Providers from './providers';
 
 const geistSans = Geist({
@@ -81,7 +82,9 @@ export default function RootLayout({
             }}
           >
             <RoleProvider>
-              <Providers>{children}</Providers>
+              <LanguageProvider>
+                <Providers>{children}</Providers>
+              </LanguageProvider>
             </RoleProvider>
           </ConfigProvider>
         </AntdRegistry>
