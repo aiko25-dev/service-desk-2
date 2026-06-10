@@ -96,13 +96,27 @@ export class TicketsService {
     return ticket;
   }
 
-  async create(data: { title: string; description: string; category: string; priority: Priority; fileIds?: string[] }, creatorId: string) {
+  async create(data: { 
+    title: string; 
+    description: string; 
+    category: string; 
+    priority: Priority; 
+    fileIds?: string[];
+    company?: string;
+    phone?: string;
+    email?: string;
+    section?: string;
+  }, creatorId: string) {
     const ticket = await this.prisma.ticket.create({
       data: {
         title: data.title,
         description: data.description,
         category: data.category,
         priority: data.priority,
+        company: data.company,
+        phone: data.phone,
+        email: data.email,
+        section: data.section,
         creatorId,
       },
     });
@@ -216,6 +230,62 @@ export class TicketsService {
     return comment;
   }
 
+  async update(id: string, data: any, userId: string) {
+    const ticket = await this.findOne(id);
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) throw new ForbiddenException('Пользователь не найден');
+
+    if (user.role !== Role.OPERATOR && user.role !== Role.ADMIN && user.role !== Role.MANAGER && ticket.creatorId !== userId) {
+      throw new ForbiddenException('У вас нет прав для изменения этой заявки');
+    }
+
+    const updated = await this.prisma.ticket.update({
+      where: { id },
+      data: {
+        company: data.company,
+        phone: data.phone,
+        email: data.email,
+        line2: data.line2,
+        line3: data.line3,
+        section: data.section,
+        resolution: data.resolution,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        priority: data.priority,
+      },
+    });
+
+    let auditText = `[Система]: Заявка обновлена.`;
+    const changes: string[] = [];
+    if (data.line2 !== undefined && data.line2 !== ticket.line2) changes.push(`2-линия: "${data.line2}"`);
+    if (data.line3 !== undefined && data.line3 !== ticket.line3) changes.push(`3-линия: "${data.line3}"`);
+    if (data.resolution !== undefined && data.resolution !== ticket.resolution) changes.push(`решение: "${data.resolution}"`);
+    if (data.section !== undefined && data.section !== ticket.section) changes.push(`раздел: "${data.section}"`);
+
+    if (changes.length > 0) {
+      auditText += ` Изменения: ${changes.join(', ')}`;
+      await this.prisma.comment.create({
+        data: {
+          text: auditText,
+          ticketId: id,
+          authorId: userId,
+        },
+      });
+    }
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'TICKET_UPDATED',
+        details: `Обновлена заявка #${id} пользователем ${user.firstName} ${user.lastName}.`,
+      },
+    });
+
+    return this.findOne(id);
+  }
+
   async exportToExcel(filters: any) {
     const tickets = await this.findAll(filters);
 
@@ -223,35 +293,52 @@ export class TicketsService {
     const worksheet = workbook.addWorksheet('Заявки');
 
     worksheet.columns = [
-      { header: 'ID Заявки', key: 'id', width: 25 },
-      { header: 'Тема', key: 'title', width: 30 },
-      { header: 'Описание', key: 'description', width: 40 },
+      { header: '№', key: 'index', width: 8 },
+      { header: 'ФИО, Наименования предприятия, ИП, ТОО', key: 'company', width: 35 },
+      { header: 'Номер телефона, почта', key: 'contact', width: 25 },
+      { header: 'ФИО ответственный (ИАЦ)', key: 'assignee', width: 25 },
+      { header: '1- линия (тех проблема)', key: 'line1', width: 45 },
+      { header: '2-линия', key: 'line2', width: 25 },
+      { header: '3-линия', key: 'line3', width: 25 },
       { header: 'Статус', key: 'status', width: 20 },
-      { header: 'Приоритет', key: 'priority', width: 15 },
-      { header: 'Категория', key: 'category', width: 25 },
-      { header: 'Создатель', key: 'creator', width: 25 },
-      { header: 'Исполнитель', key: 'assignee', width: 25 },
-      { header: 'Дата создания', key: 'createdAt', width: 20 },
+      { header: 'Тип вопроса, раздел', key: 'section', width: 25 },
+      { header: 'Решение', key: 'resolution', width: 30 },
+      { header: 'Дата', key: 'createdAt', width: 15 },
     ];
 
-    // Style header row
+    // Style header row (Dark green theme matching the user's table in screenshot)
     worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     worksheet.getRow(1).fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF1E40AF' }, // Blue primary theme
+      fgColor: { argb: 'FF2C5E43' }, // Forest green
     };
 
-    tickets.forEach((t) => {
+    const statusMap = {
+      NEW: 'Новая',
+      ACCEPTED: 'Принята',
+      IN_PROGRESS: 'В работе',
+      PENDING_APPROVAL: 'На согласовании',
+      CLOSED: 'Закрыта',
+      REJECTED: 'Отклонена',
+    };
+
+    tickets.forEach((t, idx) => {
+      const companyVal = t.company || `${t.creator.firstName} ${t.creator.lastName}`;
+      const contactVal = `${t.phone || ''} ${t.email || t.creator.email || ''}`.trim();
+      const statusText = statusMap[t.status] || t.status;
+
       worksheet.addRow({
-        id: t.id,
-        title: t.title,
-        description: t.description,
-        status: t.status,
-        priority: t.priority,
-        category: t.category,
-        creator: `${t.creator.firstName} ${t.creator.lastName} (${t.creator.email})`,
+        index: idx + 1,
+        company: companyVal,
+        contact: contactVal,
         assignee: t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : 'Не назначен',
+        line1: t.description,
+        line2: t.line2 || '',
+        line3: t.line3 || '',
+        status: statusText,
+        section: t.section || t.category || '',
+        resolution: t.resolution || '',
         createdAt: t.createdAt.toLocaleDateString(),
       });
     });

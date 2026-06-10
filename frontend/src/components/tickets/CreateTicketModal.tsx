@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select, Upload, message, Button, Space } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { UploadProps, UploadFile } from 'antd';
+import { useAuthStore } from '@/store/authStore';
 
 const { TextArea } = Input;
 const { Dragger } = Upload;
@@ -16,8 +17,22 @@ interface CreateTicketModalProps {
 
 export default function CreateTicketModal({ open, onCancel, onSubmit }: CreateTicketModalProps) {
   const [form] = Form.useForm();
+  const { user } = useAuthStore();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (open && user) {
+      form.setFieldsValue({
+        company: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        phone: '',
+        section: '',
+        priority: 'Средний',
+        category: 'IT'
+      });
+    }
+  }, [open, user, form]);
 
   const handleOk = async () => {
     try {
@@ -114,6 +129,52 @@ export default function CreateTicketModal({ open, onCancel, onSubmit }: CreateTi
             className="bg-slate-900/50 hover:bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-100 rounded-lg h-10"
           />
         </Form.Item>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Form.Item
+            name="company"
+            label={<span className="text-slate-300 font-semibold text-sm">ФИО, Наименование предприятия, ИП, ТОО</span>}
+            rules={[{ required: true, message: 'Пожалуйста, введите наименование предприятия или ФИО!' }]}
+          >
+            <Input 
+              placeholder="ФИО или ТОО/ИП..." 
+              className="bg-slate-900/50 hover:bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-100 rounded-lg h-10"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="phone"
+            label={<span className="text-slate-300 font-semibold text-sm">Номер телефона</span>}
+          >
+            <Input 
+              placeholder="87771234567..." 
+              className="bg-slate-900/50 hover:bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-100 rounded-lg h-10"
+            />
+          </Form.Item>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Form.Item
+            name="email"
+            label={<span className="text-slate-300 font-semibold text-sm">Электронная почта (Email)</span>}
+            rules={[{ type: 'email', message: 'Некорректный email адрес!' }]}
+          >
+            <Input 
+              placeholder="email@company.com..." 
+              className="bg-slate-900/50 hover:bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-100 rounded-lg h-10"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="section"
+            label={<span className="text-slate-300 font-semibold text-sm">Тип вопроса, раздел</span>}
+          >
+            <Input 
+              placeholder="Например: сайт НБД, доступ..." 
+              className="bg-slate-900/50 hover:bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-100 rounded-lg h-10"
+            />
+          </Form.Item>
+        </div>
 
         <Form.Item
           name="description"

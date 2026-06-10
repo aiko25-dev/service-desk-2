@@ -64,40 +64,45 @@ export class UsersService {
   }
 
   async create(data: any, adminId: string) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: data.email },
-    });
-    if (existing) {
-      throw new BadRequestException('Пользователь с таким email уже существует');
+    try {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: data.email },
+      });
+      if (existing) {
+        throw new BadRequestException('Пользователь с таким email уже существует');
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(data.password || 'Company123!', salt);
+
+      const user = await this.prisma.user.create({
+        data: {
+          email: data.email,
+          password: hashedPassword,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          role: data.role || Role.OPERATOR,
+          department: data.department,
+          position: data.position,
+          joinDate: data.joinDate ? new Date(data.joinDate) : new Date(),
+          isActive: true,
+        },
+      });
+
+      await this.prisma.auditLog.create({
+        data: {
+          userId: adminId,
+          action: 'USER_CREATED_BY_ADMIN',
+          details: `Администратор создал пользователя ${user.firstName} ${user.lastName} (${user.email}) с ролью ${user.role}.`,
+        },
+      });
+
+      const { password, ...result } = user;
+      return result;
+    } catch (err: any) {
+      console.error('Error in UsersService.create:', err);
+      throw new BadRequestException(err.message || 'Ошибка создания пользователя');
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password || 'Company123!', salt);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email: data.email,
-        password: hashedPassword,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: data.role || Role.OPERATOR,
-        department: data.department,
-        position: data.position,
-        joinDate: data.joinDate ? new Date(data.joinDate) : new Date(),
-        isActive: true,
-      },
-    });
-
-    await this.prisma.auditLog.create({
-      data: {
-        userId: adminId,
-        action: 'USER_CREATED_BY_ADMIN',
-        details: `Администратор создал пользователя ${user.firstName} ${user.lastName} (${user.email}) с ролью ${user.role}.`,
-      },
-    });
-
-    const { password, ...result } = user;
-    return result;
   }
 
   async update(id: string, data: any, updaterId: string) {

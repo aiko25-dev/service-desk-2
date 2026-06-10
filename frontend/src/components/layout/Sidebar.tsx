@@ -34,24 +34,17 @@ export default function Sidebar() {
 
   // Define menu items with roles constraints and translated names
   const menuItems = [
-    { name: t('navDashboard'), path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navTickets'), path: '/tickets', icon: Ticket, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navTasks'), path: '/tasks', icon: CheckSquare, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: t('navKanban'), path: '/navKanban', icon: Kanban, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] }, // Wait, keep path as '/kanban'
+    { name: t('navKanban'), path: '/kanban', icon: Kanban, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navReports'), path: '/reports', icon: FileText, roles: ['ADMIN', 'MANAGER', 'ACCOUNTANT'] },
     { name: t('navMessages'), path: '/messages', icon: Mail, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navHR'), path: '/hr', icon: Users, roles: ['ADMIN', 'HR', 'MANAGER'] },
-    { name: t('navFinance'), path: '/finance', icon: Wallet, roles: ['ADMIN', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navEmployees'), path: '/employees', icon: UserCheck, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
-    { name: t('navApprovals'), path: '/approvals', icon: CheckSquare, roles: ['ADMIN', 'MANAGER'] },
     { name: t('navFiles'), path: '/files', icon: FolderOpen, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
     { name: t('navAdmin'), path: '/admin', icon: Shield, roles: ['ADMIN'] },
     { name: t('navSettings'), path: '/settings', icon: Settings, roles: ['ADMIN', 'OPERATOR', 'HR', 'ACCOUNTANT', 'MANAGER'] },
   ];
-
-  // Fix: make sure Kanban path matches '/kanban'
-  menuItems[3].name = t('navKanban');
-  menuItems[3].path = '/kanban';
 
   // Filter links based on current user role
   const allowedItems = menuItems.filter((item) => item.roles.includes(user.role));

@@ -32,7 +32,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated && !isLoginRoute) {
       router.replace('/login');
     } else if (isAuthenticated && isLoginRoute) {
-      router.replace('/dashboard');
+      router.replace('/tickets');
     }
   }, [isAuthenticated, pathname, router, mounted]);
 

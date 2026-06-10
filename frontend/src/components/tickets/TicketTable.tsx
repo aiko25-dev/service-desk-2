@@ -17,6 +17,13 @@ export interface TicketType {
   assignee: string;
   createdAt: string;
   description?: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  line2?: string;
+  line3?: string;
+  section?: string;
+  resolution?: string;
 }
 
 interface TicketTableProps {
@@ -54,98 +61,39 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
     }
   };
 
-  // Priority mapping to Badge status
-  const getPriorityBadge = (priority: TicketType['priority']) => {
-    switch (priority) {
-      case 'Высокий':
-        return <Badge status="error" text={<span className="text-red-400 font-semibold">Высокий</span>} />;
-      case 'Средний':
-        return <Badge status="warning" text={<span className="text-amber-400 font-medium">Средний</span>} />;
-      case 'Низкий':
-        return <Badge status="default" text={<span className="text-slate-400">Низкий</span>} />;
-      default:
-        return <Badge status="default" text={priority} />;
-    }
-  };
-
-  // Categories mapping to beautiful badges
-  const getCategoryTag = (category: string) => {
-    switch (category) {
-      case 'IT':
-        return <Tag className="border-slate-800 bg-slate-900/60 text-slate-300">IT</Tag>;
-      case 'HR':
-        return <Tag className="border-magenta-900/30 bg-magenta-500/10 text-magenta-300">HR</Tag>;
-      case 'Бухгалтерия':
-        return <Tag className="border-cyan-900/30 bg-cyan-500/10 text-cyan-300">Бухгалтерия</Tag>;
-      default:
-        return <Tag>{category}</Tag>;
-    }
-  };
-
   const columns: ColumnsType<TicketType> = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: '120px',
-      sorter: (a, b) => a.id.localeCompare(b.id),
-      render: (id) => (
-        <Space className="font-mono text-slate-300 text-xs">
-          <span>{id}</span>
-          <Tooltip title="Копировать ID">
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined className="text-slate-500 hover:text-white text-[11px]" />}
-              onClick={(e) => handleCopyId(id, e)}
-              className="flex items-center justify-center hover:bg-slate-800 p-0 w-5 h-5 min-w-[20px] rounded"
-            />
-          </Tooltip>
-        </Space>
+      title: '№',
+      key: 'index',
+      width: '60px',
+      render: (_, __, index) => (
+        <span className="text-slate-300 font-semibold">{index + 1}</span>
       )
     },
     {
-      title: 'Тема обращения',
-      dataIndex: 'subject',
-      key: 'subject',
-      ellipsis: true,
-      render: (subject, record) => (
-        <span 
-          onClick={() => onViewDetails?.(record)}
-          className="text-white font-semibold cursor-pointer hover:text-blue-400 hover:underline transition-colors block py-0.5"
-        >
-          {subject}
+      title: 'ФИО, Наименования предприятия, ИП, ТОО',
+      dataIndex: 'company',
+      key: 'company',
+      width: '240px',
+      render: (company) => (
+        <span className="text-white font-semibold block truncate" title={company}>
+          {company || '—'}
         </span>
       )
     },
     {
-      title: 'Категория',
-      dataIndex: 'category',
-      key: 'category',
-      width: '140px',
-      render: (category) => getCategoryTag(category)
+      title: 'Номер телефона, почта',
+      key: 'contact',
+      width: '180px',
+      render: (_, record) => (
+        <div className="flex flex-col text-[11px] text-slate-300 leading-tight">
+          <span className="font-semibold">{record.phone || '—'}</span>
+          <span className="text-slate-500">{record.email || '—'}</span>
+        </div>
+      )
     },
     {
-      title: 'Приоритет',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: '130px',
-      sorter: (a, b) => {
-        const priorityWeight = { 'Низкий': 1, 'Средний': 2, 'Высокий': 3 };
-        return priorityWeight[a.priority] - priorityWeight[b.priority];
-      },
-      render: (priority) => getPriorityBadge(priority)
-    },
-    {
-      title: 'Статус',
-      dataIndex: 'status',
-      key: 'status',
-      width: '170px',
-      sorter: (a, b) => a.status.localeCompare(b.status),
-      render: (status) => getStatusTag(status)
-    },
-    {
-      title: 'Исполнитель',
+      title: 'ФИО ответственный (ИАЦ)',
       dataIndex: 'assignee',
       key: 'assignee',
       width: '180px',
@@ -156,28 +104,75 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       )
     },
     {
-      title: 'Создана',
+      title: '1- линия (тех проблема)',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+      width: '280px',
+      render: (desc, record) => (
+        <span 
+          onClick={() => onViewDetails?.(record)}
+          className="text-white font-medium cursor-pointer hover:text-blue-400 hover:underline transition-colors block py-0.5"
+          title={desc}
+        >
+          {desc}
+        </span>
+      )
+    },
+    {
+      title: '2-линия',
+      dataIndex: 'line2',
+      key: 'line2',
+      width: '140px',
+      render: (line2) => (
+        <span className="text-slate-300 text-xs truncate block" title={line2}>{line2 || '—'}</span>
+      )
+    },
+    {
+      title: '3-линия',
+      dataIndex: 'line3',
+      key: 'line3',
+      width: '140px',
+      render: (line3) => (
+        <span className="text-slate-300 text-xs truncate block" title={line3}>{line3 || '—'}</span>
+      )
+    },
+    {
+      title: 'Статус',
+      dataIndex: 'status',
+      key: 'status',
+      width: '130px',
+      sorter: (a, b) => a.status.localeCompare(b.status),
+      render: (status) => getStatusTag(status)
+    },
+    {
+      title: 'Тип вопроса, раздел',
+      dataIndex: 'section',
+      key: 'section',
+      width: '150px',
+      render: (section, record) => (
+        <span className="text-slate-300 text-xs font-semibold">{section || record.category || '—'}</span>
+      )
+    },
+    {
+      title: 'Решение',
+      dataIndex: 'resolution',
+      key: 'resolution',
+      width: '180px',
+      render: (resolution) => (
+        <span className="text-emerald-400 text-xs font-semibold truncate block" title={resolution}>{resolution || '—'}</span>
+      )
+    },
+    {
+      title: 'Дата',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      width: '130px',
+      width: '110px',
       sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       render: (date) => (
         <span className="text-slate-400 text-xs font-mono">
           {date}
         </span>
-      )
-    },
-    {
-      title: 'Действия',
-      key: 'actions',
-      width: '100px',
-      render: (_, record) => (
-        <Button
-          type="text"
-          icon={<EyeOutlined className="text-slate-400 hover:text-white" />}
-          onClick={() => onViewDetails?.(record)}
-          className="flex items-center justify-center hover:bg-slate-800 rounded-lg w-8 h-8"
-        />
       )
     }
   ];

@@ -66,6 +66,13 @@ model Ticket {
   status      TicketStatus @default(NEW)
   priority    Priority     @default(MEDIUM)
   category    String
+  company     String?
+  phone       String?
+  email       String?
+  line2       String?
+  line3       String?
+  section     String?
+  resolution  String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   creatorId   String

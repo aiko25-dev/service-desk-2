@@ -52,6 +52,11 @@ export class TicketsController {
     return this.ticketsService.create(data, req.user.id);
   }
 
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() data: any, @Req() req) {
+    return this.ticketsService.update(id, data, req.user.id);
+  }
+
   @Put(':id/status')
   async updateStatus(
     @Param('id') id: string,

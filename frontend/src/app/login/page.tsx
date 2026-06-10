@@ -29,7 +29,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', { email, password });
       setAuth(res.data.access_token, res.data.user);
-      router.replace('/dashboard');
+      router.replace('/tickets');
     } catch (err: any) {
       setError(err.response?.data?.message || t('loginInvalidError'));
     } finally {

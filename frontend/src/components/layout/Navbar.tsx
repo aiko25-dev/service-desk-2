@@ -33,18 +33,6 @@ export default function Navbar() {
     refetchInterval: 15000, // Poll every 15 seconds
   });
 
-  // Fetch pending approvals to show in notifications
-  const { data: pendingApprovals } = useQuery({
-    queryKey: ['pendingApprovalsCount'],
-    queryFn: async () => {
-      if (user?.role !== 'MANAGER' && user?.role !== 'ADMIN') return [];
-      const res = await api.get('/approvals/pending');
-      return res.data;
-    },
-    enabled: !!user,
-    refetchInterval: 15000, // Poll every 15 seconds
-  });
-
   // Initialize and update notifications
   useEffect(() => {
     if (!user) return;
@@ -94,33 +82,9 @@ export default function Navbar() {
       list = list.filter((n: any) => n.id !== 'mail');
     }
 
-    // Dynamically insert pending approvals notification
-    const approvalCount = pendingApprovals?.length || 0;
-    if (approvalCount > 0) {
-      const hasApprovals = list.some((n: any) => n.id === 'approvals');
-      if (!hasApprovals) {
-        list = [
-          {
-            id: 'approvals',
-            title: 'Мақұлдауды күтуде',
-            description: `Сізде мақұлдауды күтудегі ${approvalCount} сұраныс бар.`,
-            time: 'Қазір',
-            read: false,
-            type: 'warning',
-            link: '/approvals'
-          },
-          ...list.filter((n: any) => n.id !== 'approvals')
-        ];
-      } else {
-        list = list.map((n: any) => n.id === 'approvals' ? { ...n, description: `Сізде maқұлдауды күтудегі ${approvalCount} сұраныс бар.`, read: false } : n);
-      }
-    } else {
-      list = list.filter((n: any) => n.id !== 'approvals');
-    }
-
     setNotifications(list);
     localStorage.setItem(`notifications_${user.id}`, JSON.stringify(list));
-  }, [user, mailData, pendingApprovals]);
+  }, [user, mailData]);
 
   // Click outside to close
   useEffect(() => {
@@ -168,22 +132,18 @@ export default function Navbar() {
 
   if (!user) return null;
 
-  // Title selector based on path
   const getHeaderTitle = () => {
-    if (pathname.startsWith('/dashboard')) return t('navDashboard');
     if (pathname.startsWith('/tickets')) return t('navTickets');
     if (pathname.startsWith('/tasks')) return t('navTasks');
     if (pathname.startsWith('/kanban')) return t('navKanban');
     if (pathname.startsWith('/reports')) return t('navReports');
     if (pathname.startsWith('/messages')) return t('navMessages');
     if (pathname.startsWith('/hr')) return t('navHR');
-    if (pathname.startsWith('/finance')) return t('navFinance');
     if (pathname.startsWith('/employees')) return t('navEmployees');
-    if (pathname.startsWith('/approvals')) return t('navApprovals');
     if (pathname.startsWith('/files')) return t('navFiles');
     if (pathname.startsWith('/admin')) return t('navAdmin');
     if (pathname.startsWith('/settings')) return t('navSettings');
-    return t('navDashboard');
+    return t('navTickets');
   };
 
   const unreadCount = mailData?.count || 0;
@@ -221,43 +181,7 @@ export default function Navbar() {
       {/* Action Tools */}
       <div className="flex items-center gap-4">
         
-        {/* Dynamic Role Switcher for Testing */}
-        <div className="relative" ref={roleRef}>
-          <button
-            onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-[#dfe1e6] hover:border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100/50 text-[10px] font-bold text-slate-700 transition-all cursor-pointer"
-          >
-            <Shield size={12} className="text-blue-600" />
-            <span>Роль:</span>
-            <span className={`px-1.5 py-0.5 rounded uppercase ${getRoleBadgeStyle(user.role)}`}>
-              {user.role}
-            </span>
-            <ChevronDown size={12} className="text-slate-400" />
-          </button>
-
-          {showRoleMenu && (
-            <div className="absolute right-0 mt-1.5 w-52 bg-white rounded-xl border border-slate-200 shadow-lg z-50 overflow-hidden py-1">
-              <div className="px-3 py-1.5 border-b border-slate-100 text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                Тестілеуге рөл таңдаңыз:
-              </div>
-              {rolesList.map((r) => (
-                <button
-                  key={r.key}
-                  onClick={() => {
-                    updateUser({ role: r.key as any });
-                    setShowRoleMenu(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs font-semibold hover:bg-slate-50 flex items-center justify-between transition-colors ${
-                    user.role === r.key ? 'text-blue-600 bg-blue-50/30' : 'text-slate-655'
-                  }`}
-                >
-                  <span>{r.label}</span>
-                  {user.role === r.key && <span className="text-blue-600">✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Role Switcher Removed */}
 
         {/* Language Selector */}
         <div className="relative" ref={langRef}>
