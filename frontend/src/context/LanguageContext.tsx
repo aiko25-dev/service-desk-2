@@ -137,7 +137,13 @@ const translations = {
     settingsSaveError: 'Профиль мәліметтерін сақтау мүмкін болмады',
     settingsRbacTitle: 'Қолжетімділік деңгейі (RBAC)',
     settingsRbacRole: 'Сіздің рөліңіз: ',
-    settingsRbacRights: 'Сіздегі құқықтар:'
+    settingsRbacRights: 'Сіздегі құқықтар:',
+
+    // Tickets Page
+    ticketsTitle: 'Өтінімдер тізілімі (Tickets)',
+    ticketsSubtitle: 'Өтінімдерді басқарыңыз, статустарды сүзіңіз және SLA орындалуын нақты уақытта қадағалаңыз.',
+    exportExcel: 'Excel-ге экспорттау',
+    createTicket: 'Өтінім жасау'
   },
   ru: {
     // Common / Global
@@ -271,7 +277,13 @@ const translations = {
     settingsSaveError: 'Не удалось обновить профиль',
     settingsRbacTitle: 'Уровень доступа (RBAC)',
     settingsRbacRole: 'Ваша роль: ',
-    settingsRbacRights: 'Доступные вам права:'
+    settingsRbacRights: 'Доступные вам права:',
+
+    // Tickets Page
+    ticketsTitle: 'Реестр заявок (Tickets)',
+    ticketsSubtitle: 'Управляйте заявками, фильтруйте статусы и отслеживайте выполнение SLA в реальном времени.',
+    exportExcel: 'Экспорт в Excel',
+    createTicket: 'Создать заявку'
   },
   en: {
     // Common / Global
@@ -405,7 +417,13 @@ const translations = {
     settingsSaveError: 'Failed to update profile settings',
     settingsRbacTitle: 'Access Level (RBAC)',
     settingsRbacRole: 'Your role: ',
-    settingsRbacRights: 'Assigned permissions:'
+    settingsRbacRights: 'Assigned permissions:',
+
+    // Tickets Page
+    ticketsTitle: 'Tickets Registry',
+    ticketsSubtitle: 'Manage tickets, filter statuses and track SLA performance in real-time.',
+    exportExcel: 'Export to Excel',
+    createTicket: 'Create Ticket'
   }
 };
 

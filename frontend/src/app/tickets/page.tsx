@@ -20,6 +20,7 @@ import TicketFilters from '@/components/tickets/TicketFilters';
 import TicketTable, { TicketType } from '@/components/tickets/TicketTable';
 import CreateTicketModal from '@/components/tickets/CreateTicketModal';
 import dayjs from 'dayjs';
+import { useLanguage } from '@/context/LanguageContext';
 
 const { Title, Text } = Typography;
 
@@ -71,6 +72,7 @@ export default function TicketsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuthStore();
+  const { t } = useLanguage();
 
   // Selected ticket from list/URL
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
@@ -396,9 +398,9 @@ export default function TicketsPage() {
       {/* Header and Action Panel */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
         <div>
-          <Title level={2} className="text-slate-850 font-bold m-0 tracking-tight">Өтінімдер тізілімі (Tickets)</Title>
+          <Title level={2} className="text-slate-850 font-bold m-0 tracking-tight">{t('ticketsTitle')}</Title>
           <Text className="text-slate-500 text-sm font-semibold mt-1 block">
-            Өтінімдерді басқарыңыз, статустарды сүзіңіз және SLA орындалуын нақты уақытта қадағалаңыз.
+            {t('ticketsSubtitle')}
           </Text>
         </div>
         
@@ -410,7 +412,7 @@ export default function TicketsPage() {
             loading={exporting}
             className="h-10 text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-4 flex items-center justify-center gap-1.5 transition-all font-semibold cursor-pointer"
           >
-            Excel-ге экспорттау
+            {t('exportExcel')}
           </Button>
           
           <Button
@@ -419,7 +421,7 @@ export default function TicketsPage() {
             onClick={() => setModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 border-none px-5 rounded-lg font-semibold shadow-sm h-10 flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            Өтінім жасау
+            {t('createTicket')}
           </Button>
         </Space>
       </div>

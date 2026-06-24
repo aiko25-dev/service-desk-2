@@ -13,7 +13,7 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
-  const [role, setRole] = useState<UserRole>('Администратор'); // Default to Admin to show everything first
+  const [role, setRole] = useState<UserRole>('Администратор'); 
 
   const availableRoles: UserRole[] = [
     'Администратор',
