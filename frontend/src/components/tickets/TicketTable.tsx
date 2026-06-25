@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Table, Tag, Badge, Button, Space, Tooltip, message, Typography } from 'antd';
-import { CopyOutlined, EyeOutlined } from '@ant-design/icons';
+import { Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Text } = Typography;
@@ -13,7 +12,7 @@ export interface TicketType {
   subject: string;
   category: string;
   priority: 'Высокий' | 'Средний' | 'Низкий';
-  status: 'Новая' | 'Принята' | 'В работе' | 'На согласовании' | 'Закрыта' | 'Отклонена';
+  status: 'Новая' | 'Принята' | 'В работе' | 'На согласовании' | 'Закрыта' | 'Отклонена' | 'Опубликован';
   assignee: string;
   createdAt: string;
   description?: string;
@@ -30,44 +29,19 @@ interface TicketTableProps {
   dataSource: TicketType[];
   loading?: boolean;
   onViewDetails?: (ticket: TicketType) => void;
+  activeTab?: string;
 }
 
-export default function TicketTable({ dataSource, loading = false, onViewDetails }: TicketTableProps) {
+export default function TicketTable({ dataSource, loading = false, onViewDetails, activeTab = 'по НБД' }: TicketTableProps) {
 
-  // Copy ID to clipboard
-  const handleCopyId = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(id);
-    message.success(`ID заявки ${id} скопирован в буфер обмена`);
-  };
-
-  // Status mapping to AntD tags & custom colors
-  const getStatusTag = (status: TicketType['status']) => {
-    switch (status) {
-      case 'Новая':
-        return <Tag color="default" className="border-none px-2.5 py-0.5 rounded font-semibold text-slate-300 bg-slate-800">Новая</Tag>;
-      case 'Принята':
-        return <Tag color="blue" className="border-none px-2.5 py-0.5 rounded font-semibold text-blue-400 bg-blue-500/10">Принята</Tag>;
-      case 'В работе':
-        return <Tag color="warning" className="border-none px-2.5 py-0.5 rounded font-semibold text-amber-400 bg-amber-500/10">В работе</Tag>;
-      case 'На согласовании':
-        return <Tag color="purple" className="border-none px-2.5 py-0.5 rounded font-semibold text-purple-400 bg-purple-500/10">На согласовании</Tag>;
-      case 'Закрыта':
-        return <Tag color="success" className="border-none px-2.5 py-0.5 rounded font-semibold text-green-400 bg-green-500/10">Закрыта</Tag>;
-      case 'Отклонена':
-        return <Tag color="error" className="border-none px-2.5 py-0.5 rounded font-semibold text-red-400 bg-red-500/10">Отклонена</Tag>;
-      default:
-        return <Tag>{status}</Tag>;
-    }
-  };
-
-  const columns: ColumnsType<TicketType> = [
+  // 1. DEFAULT COLUMNS (Used for по НБД, АСМ, ГУК, ГКО, РВПЗ, ПЭК)
+  const defaultColumns: ColumnsType<TicketType> = [
     {
       title: '№',
       key: 'index',
       width: '60px',
       render: (_, __, index) => (
-        <span className="text-slate-300 font-semibold">{index + 1}</span>
+        <span className="text-slate-800 font-bold text-xs">{index + 1}</span>
       )
     },
     {
@@ -76,7 +50,7 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       key: 'company',
       width: '240px',
       render: (company) => (
-        <span className="text-white font-semibold block truncate" title={company}>
+        <span className="text-slate-800 font-semibold block whitespace-normal leading-tight text-xs" title={company}>
           {company || '—'}
         </span>
       )
@@ -86,7 +60,7 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       key: 'contact',
       width: '180px',
       render: (_, record) => (
-        <div className="flex flex-col text-[11px] text-slate-300 leading-tight">
+        <div className="flex flex-col text-[11px] text-slate-700 leading-tight">
           <span className="font-semibold">{record.phone || '—'}</span>
           <span className="text-slate-500">{record.email || '—'}</span>
         </div>
@@ -96,10 +70,10 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       title: 'ФИО ответственный (ИАЦ)',
       dataIndex: 'assignee',
       key: 'assignee',
-      width: '180px',
+      width: '185px',
       render: (assignee) => (
-        <span className="text-slate-300 font-medium text-xs">
-          {assignee || <span className="text-slate-500 italic">Не назначен</span>}
+        <span className="text-slate-800 font-semibold text-xs">
+          {assignee || <span className="text-slate-400 italic font-normal">Не назначен</span>}
         </span>
       )
     },
@@ -108,11 +82,14 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
-      width: '280px',
+      width: '320px',
       render: (desc, record) => (
         <span 
-          onClick={() => onViewDetails?.(record)}
-          className="text-white font-medium cursor-pointer hover:text-blue-400 hover:underline transition-colors block py-0.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails?.(record);
+          }}
+          className="text-slate-800 font-normal cursor-pointer hover:text-blue-650 hover:underline transition-colors block py-0.5 whitespace-normal leading-normal text-xs"
           title={desc}
         >
           {desc}
@@ -123,18 +100,18 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       title: '2-линия',
       dataIndex: 'line2',
       key: 'line2',
-      width: '140px',
+      width: '90px',
       render: (line2) => (
-        <span className="text-slate-300 text-xs truncate block" title={line2}>{line2 || '—'}</span>
+        <span className="text-slate-700 text-xs truncate block" title={line2}>{line2 || '—'}</span>
       )
     },
     {
       title: '3-линия',
       dataIndex: 'line3',
       key: 'line3',
-      width: '140px',
+      width: '90px',
       render: (line3) => (
-        <span className="text-slate-300 text-xs truncate block" title={line3}>{line3 || '—'}</span>
+        <span className="text-slate-700 text-xs truncate block" title={line3}>{line3 || '—'}</span>
       )
     },
     {
@@ -143,7 +120,17 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       key: 'status',
       width: '130px',
       sorter: (a, b) => a.status.localeCompare(b.status),
-      render: (status) => getStatusTag(status)
+      onCell: () => {
+        if (activeTab === 'ГУК' || activeTab === 'ГКО') {
+          return { style: { backgroundColor: '#ffff00', color: '#000000' } };
+        }
+        return {};
+      },
+      render: (status) => {
+        const isClosed = status === 'Closed' || status === 'CLOSED' || status === 'Закрыта';
+        const displayText = isClosed ? 'Отработано' : (status === 'Опубликован' ? 'Опубликован' : 'в работе');
+        return <span className="text-slate-800 font-semibold text-xs">{displayText}</span>;
+      }
     },
     {
       title: 'Тип вопроса, раздел',
@@ -151,17 +138,23 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       key: 'section',
       width: '150px',
       render: (section, record) => (
-        <span className="text-slate-300 text-xs font-semibold">{section || record.category || '—'}</span>
+        <span className="text-slate-700 text-xs font-semibold">{section || record.category || '—'}</span>
       )
     },
     {
       title: 'Решение',
       dataIndex: 'resolution',
       key: 'resolution',
-      width: '180px',
-      render: (resolution) => (
-        <span className="text-emerald-400 text-xs font-semibold truncate block" title={resolution}>{resolution || '—'}</span>
-      )
+      width: '220px',
+      onCell: () => {
+        if (activeTab === 'ГКО') {
+          return { style: { backgroundColor: '#ffff00', color: '#000000' } };
+        }
+        return {};
+      },
+      render: (resolution) => {
+        return <span className="text-slate-800 font-semibold text-xs leading-tight block whitespace-normal" title={resolution}>{resolution || '—'}</span>;
+      }
     },
     {
       title: 'Дата',
@@ -170,25 +163,124 @@ export default function TicketTable({ dataSource, loading = false, onViewDetails
       width: '110px',
       sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       render: (date) => (
-        <span className="text-slate-400 text-xs font-mono">
+        <span className="text-slate-700 text-xs font-mono">
           {date}
         </span>
       )
     }
   ];
 
+  // 2. ALTERNATIVE COLUMNS (Used ONLY for по ОС)
+  const osColumns: ColumnsType<TicketType> = [
+    {
+      title: 'Столбец',
+      key: 'index',
+      width: '70px',
+      render: (_, __, index) => (
+        <span className="text-slate-800 font-bold text-xs">{index + 1}</span>
+      )
+    },
+    {
+      title: 'Область/инициатор/номер (почта)',
+      key: 'contactInfo',
+      width: '320px',
+      render: (_, record) => {
+        const parts = [];
+        if (record.phone) parts.push(record.phone);
+        if (record.company) parts.push(record.company);
+        if (record.email) parts.push(record.email);
+        return (
+          <span className="text-slate-800 font-semibold block whitespace-normal leading-snug text-xs">
+            {parts.join(' ') || '—'}
+          </span>
+        );
+      }
+    },
+    {
+      title: 'Вид вопроса',
+      dataIndex: 'section',
+      key: 'section',
+      width: '180px',
+      render: (section, record) => (
+        <span className="text-slate-700 font-semibold text-xs">
+          {section || record.category || '—'}
+        </span>
+      )
+    },
+    {
+      title: 'Дата',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: '110px',
+      render: (date) => (
+        <span className="text-slate-700 text-xs font-mono">
+          {date}
+        </span>
+      )
+    },
+    {
+      title: 'Вопрос',
+      dataIndex: 'description',
+      key: 'description',
+      width: '320px',
+      render: (desc, record) => (
+        <span 
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails?.(record);
+          }}
+          className="text-slate-800 font-normal cursor-pointer hover:text-blue-650 hover:underline transition-colors block py-0.5 whitespace-normal leading-normal text-xs"
+          title={desc}
+        >
+          {desc || '—'}
+        </span>
+      )
+    },
+    {
+      title: 'Статус',
+      dataIndex: 'status',
+      key: 'status',
+      width: '130px',
+      render: (status) => {
+        const isClosed = status === 'Closed' || status === 'CLOSED' || status === 'Закрыта';
+        const displayText = isClosed ? 'Отработано' : (status === 'Опубликован' ? 'Опубликован' : 'В работе');
+        return <span className="text-slate-800 font-semibold text-xs">{displayText}</span>;
+      }
+    },
+    {
+      title: 'ФИО ответственный (ИАЦ)',
+      dataIndex: 'assignee',
+      key: 'assignee',
+      width: '220px',
+      render: (assignee) => (
+        <span className="text-slate-800 font-semibold block whitespace-normal leading-tight text-xs">
+          {assignee ? `${assignee} входящий` : <span className="text-slate-400 italic font-normal">Не назначен</span>}
+        </span>
+      )
+    },
+    {
+      title: 'Столбец 1',
+      key: 'col1',
+      width: '100px',
+      render: () => <span className="text-slate-400">—</span>
+    }
+  ];
+
+  const columns = activeTab === 'по ОС' ? osColumns : defaultColumns;
+
   return (
-    <div className="rounded-2xl border border-slate-800/40 overflow-hidden shadow-xl glass-panel">
+    <div className="rounded-t-2xl border border-slate-300 overflow-hidden shadow-xl excel-table bg-white">
       <Table
         columns={columns}
         dataSource={dataSource}
         loading={loading}
+        scroll={{ x: 'max-content' }}
         pagination={{
           defaultPageSize: 8,
           showSizeChanger: true,
           pageSizeOptions: ['5', '8', '15', '30'],
           showTotal: (total, range) => (
-            <span className="text-slate-400 text-xs font-semibold">
+            <span className="text-slate-650 text-xs font-semibold px-4">
               Показано {range[0]}-{range[1]} из {total} заявок
             </span>
           )

@@ -88,6 +88,7 @@ export default function TicketsPage() {
   // Modal & Export States
   const [modalOpen, setModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [activeTab, setActiveTab] = useState('по НБД');
 
   // Comments and status change states inside Drawer
   const [commentText, setCommentText] = useState('');
@@ -108,7 +109,7 @@ export default function TicketsPage() {
 
   // Fetch Tickets List
   const { data: tickets = [], isLoading: isTicketsLoading } = useQuery<TicketType[]>({
-    queryKey: ['tickets', { filters }],
+    queryKey: ['tickets', { filters, activeTab }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filters.status && filters.status !== 'all') {
@@ -126,6 +127,7 @@ export default function TicketsPage() {
         params.append('startDate', dayjs(filters.dateRange[0]).startOf('day').toISOString());
         params.append('endDate', dayjs(filters.dateRange[1]).endOf('day').toISOString());
       }
+      params.append('category', activeTab);
 
       const res = await api.get(`/tickets?${params.toString()}`);
       return res.data.map((t: any) => ({
@@ -136,7 +138,7 @@ export default function TicketsPage() {
         priority: mapBackendPriorityToFrontend(t.priority) as any,
         status: mapBackendStatusToFrontend(t.status) as any,
         assignee: t.assignee ? `${t.assignee.firstName} ${t.assignee.lastName}` : '',
-        createdAt: dayjs(t.createdAt).format('YYYY-MM-DD'),
+        createdAt: dayjs(t.createdAt).format('DD.MM.YYYY'),
         description: t.description,
         company: t.company || (t.creator ? `${t.creator.firstName} ${t.creator.lastName}` : ''),
         phone: t.phone || '',
@@ -314,6 +316,7 @@ export default function TicketsPage() {
         params.append('startDate', dayjs(filters.dateRange[0]).startOf('day').toISOString());
         params.append('endDate', dayjs(filters.dateRange[1]).endOf('day').toISOString());
       }
+      params.append('category', activeTab);
 
       const response = await api.get(`/tickets/export?${params.toString()}`, {
         responseType: 'blob',
@@ -432,12 +435,42 @@ export default function TicketsPage() {
       </div>
 
       {/* Main Tickets Table */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex flex-col">
         <TicketTable 
           dataSource={tickets} 
           loading={isTicketsLoading}
           onViewDetails={handleViewDetails}
+          activeTab={activeTab}
         />
+        
+        {/* Bottom Tab Bar (Excel style) */}
+        <div className="flex bg-[#8ba4bc] border border-t-0 border-[#dfe1e6]/65 rounded-b-2xl p-1 gap-1 -mt-1 shadow-md z-10 overflow-x-auto">
+          {[
+            { key: 'по НБД', label: 'по НБД' },
+            { key: 'по ОС', label: 'по ОС' },
+            { key: 'АСМ', label: 'АСМ' },
+            { key: 'ГУК', label: 'ГУК' },
+            { key: 'ГКО', label: 'ГКО' },
+            { key: 'РВПЗ', label: 'РВПЗ' },
+            { key: 'ПЭК', label: 'ПЭК' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-1 text-xs font-bold transition-all rounded-lg cursor-pointer border-t border-l border-r ${
+                activeTab === tab.key
+                  ? 'bg-white text-slate-800 border-slate-300 shadow-sm relative z-20 font-extrabold'
+                  : 'bg-[#5c7b9c] text-white border-transparent hover:bg-[#6c8bac] font-semibold'
+              }`}
+              style={{
+                borderRadius: '6px 6px 0 0',
+                boxShadow: activeTab === tab.key ? '0 -2px 5px rgba(0,0,0,0.05)' : 'none',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Create Ticket Modal */}
@@ -497,7 +530,7 @@ export default function TicketsPage() {
               contentStyle={{ background: '#ffffff', color: '#172b4d' }}
             >
               <Descriptions.Item label="Құрылған күні">
-                <span className="font-mono">{dayjs(ticketDetails.createdAt).format('YYYY-MM-DD HH:mm')}</span>
+                <span className="font-mono">{dayjs(ticketDetails.createdAt).format('DD.MM.YYYY HH:mm')}</span>
               </Descriptions.Item>
               <Descriptions.Item label="ФИО / Компания">
                 <span className="font-bold text-slate-800">
@@ -737,7 +770,7 @@ export default function TicketsPage() {
                                 {comment.author ? `${comment.author.firstName} ${comment.author.lastName}` : 'Система'}
                               </span>
                               <span>
-                                {dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm')}
+                                {dayjs(comment.createdAt).format('DD.MM.YYYY HH:mm')}
                               </span>
                             </div>
                             <p className={`text-[11px] leading-relaxed m-0 ${isSystem ? 'text-slate-500 font-semibold' : 'text-slate-700 font-medium'}`}>
@@ -754,7 +787,7 @@ export default function TicketsPage() {
                         children: (
                           <div>
                             <Text strong className="text-slate-700 text-xs block">Өтінім жүйеге сәтті тіркелді</Text>
-                            <span className="text-[10px] text-slate-400 block font-mono">{dayjs(ticketDetails.createdAt).format('YYYY-MM-DD HH:mm')}</span>
+                            <span className="text-[10px] text-slate-400 block font-mono">{dayjs(ticketDetails.createdAt).format('DD.MM.YYYY HH:mm')}</span>
                           </div>
                         ),
                       }
